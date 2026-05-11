@@ -1,5 +1,6 @@
 from flask import Flask, request, redirect, render_template_string
 import sqlite3
+import os
 
 app = Flask(__name__)
 app.secret_key = "super-segreta-123"
@@ -7,19 +8,11 @@ app.secret_key = "super-segreta-123"
 def get_db():
     return sqlite3.connect("biblioteca.db")
 
-# crea tabella se non esiste
-with get_db() as db:
-    db.execute("""
-    CREATE TABLE IF NOT EXISTS libri (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        titolo TEXT,
-        autore TEXT,
-        isbn TEXT
-    )
-    """)
-import sqlite3
+db = get_db()
 
-import os
+generi = db.execute("SELECT nome FROM generi").fetchall()
+scaffali = db.execute("SELECT nome FROM scaffale").fetchall()
+
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
@@ -143,31 +136,14 @@ a {
         <option value="rivista">Rivista</option>
     </select>
     <select name="genere" required>
-        <option value="-">Tutti i generi</option>
-        <option value="fantasy">Fantasy</option>
-        <option value="fantascienza">Fantascienza</option>
-        <option value="giallo">Giallo</option>
-        <option value="thriller">Thriller</option>
-        <option value="storico">Storico</option>
-        <option value="biografia">Biografia</option>
-        <option value="saggio">Saggio</option>
-        <option value="altro">Altro</option>
+        {% for g in generi %}
+            <option value="{{ g[0] }}">{{ g[0] }}</option>
+        {% endfor %}
     </select>
-    <select name="scaffale" required>
-        <option value="-">Tutti gli scaffali</option>
-
-        <option value="A1">A1</option>
-        <option value="A2">A2</option>
-        <option value="A3">A3</option>
-
-        <option value="B1">B1</option>
-        <option value="B2">B2</option>
-        <option value="B3">B3</option>
-
-        <option value="C1">C1</option>
-        <option value="C2">C2</option>
-
-        <option value="altro">Altro</option>
+    <select name="scaffale">
+        {% for s in scaffale %}
+            <option value="{{ s[0] }}">{{ s[0] }}</option>
+        {% endfor %}
     </select>
     <button type="submit">Aggiungi</button>
 </form>
@@ -184,8 +160,7 @@ a {
     <input name="autore" placeholder="Autore">
 
     <select name="tipo">
-        <option value="">Tutti i tipi</option>
-        <option value="libro">Libro</option>
+        <option value="libro" selected>Libro</option>
         <option value="rivista">Rivista</option>
     </select>
 
