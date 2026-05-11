@@ -374,38 +374,36 @@ def home():
 
     return render_template_string(HTML, libri=libri)
 
-@app.route("/aggiungi", methods=["POST"])
+
+@app.route("/aggiungi", methods=["GET", "POST"])
 def aggiungi():
+    print(request.method)
+    print(request.form)
+    if request.method == "GET":
+        return redirect("/")
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
     db = get_db()
 
-    titolo = request.form["titolo"].strip()
-    autore = request.form["autore"].strip()
-    tipo = request.form["tipo"]
-    genere = request.form["genere"]
-    scaffale = request.form["scaffale"]
+    titolo = request.form.get("titolo", "").strip().upper()
+    autore = request.form.get("autore", "").strip().upper()
+    tipo = request.form.get("tipo", "")
+    genere = request.form.get("genere", "")
+    scaffale = request.form.get("scaffale", "")
 
-    # 🔍 controllo duplicato
-    titolo = request.form["titolo"].strip().lower()
-    autore = request.form["autore"].strip().lower()
+    if not titolo or not autore:
+        return "Dati mancanti", 400
 
-    esiste = db.execute("""
-        SELECT id FROM libri
-        WHERE LOWER(TRIM(titolo)) = ? AND LOWER(TRIM(autore)) = ?
-    """, (titolo, autore)).fetchone()
-
-    if esiste:
-        return "⚠️ Libro già presente nel catalogo!"
-
-    # ➕ inserimento normale
     db.execute("""
         INSERT INTO libri (titolo, autore, tipo, genere, scaffale)
         VALUES (?, ?, ?, ?, ?)
     """, (titolo, autore, tipo, genere, scaffale))
 
     db.commit()
-    return redirect("/")
 
-    
+    return redirect("/")
 
 @app.route("/elimina/<int:id>")
 def elimina(id):
