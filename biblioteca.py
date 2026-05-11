@@ -19,6 +19,10 @@ with get_db() as db:
     """)
 import sqlite3
 
+import os
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+
 from flask import session
 
 @app.route("/login", methods=["GET", "POST"])
@@ -26,60 +30,18 @@ def login():
     if request.method == "POST":
         password = request.form["password"]
 
-        if password == "1234":  # 👈 cambia questa password
+        if ADMIN_PASSWORD and password == ADMIN_PASSWORD:
             session["admin"] = True
             return redirect("/")
         else:
-            return "Password errata"
+            return "❌ Password errata"
 
     return """
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-        body {
-            font-family: Arial;
-            background: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 80vh;
-        }
-
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 300px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        input, button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        /* 📱 MOBILE */
-        @media (max-width: 600px) {
-            body {
-                align-items: flex-start;
-                padding-top: 40px;
-            }
-
-            .box {
-                width: 90%;
-            }
-        }
-        </style>
-
-        <div class="box">
-        <h2>🔐 Login Admin</h2>
-
-        <form method="POST">
-            <input type="password" name="password" placeholder="Password">
-            <button>Entra</button>
-        </form>
-        </div>
+    <h2>🔐 Login Admin</h2>
+    <form method="POST">
+        <input type="password" name="password">
+        <button>Entra</button>
+    </form>
     """
 @app.route("/logout")
 def logout():
@@ -146,6 +108,26 @@ a {
     }
 }
 </style>
+<div style="margin-bottom:15px;">
+
+{% if session.get("admin") %}
+
+    <span>🔐 Admin attivo</span>
+    <a href="/logout"
+       style="margin-left:10px; padding:5px 10px; background:#e74c3c; color:white; text-decoration:none; border-radius:5px;">
+        Logout
+    </a>
+
+{% else %}
+
+    <a href="/login"
+       style="padding:5px 10px; background:#2c3e50; color:white; text-decoration:none; border-radius:5px;">
+        Login Admin
+    </a>
+
+{% endif %}
+
+</div>
 <h1>📚 Biblioteca</h1>
 
 {% if session.get("admin") %}
