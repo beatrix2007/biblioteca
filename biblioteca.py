@@ -403,6 +403,7 @@ def aggiungi():
     """, (titolo, autore, tipo, genere, scaffale))
 
     db.commit()
+    return redirect("/")
 
     
 
