@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 # =========================
-# SUPABASE CONFIG
+# SUPABASE
 # =========================
 SUPABASE_URL = "https://ugviadmtvtkynvgztfmj.supabase.co"
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -36,7 +36,7 @@ def login():
         return "❌ Password errata"
 
     return """
-    <h2>🔐 Login Admin</h2>
+    <h2>Login Admin</h2>
     <form method="POST">
         <input type="password" name="password">
         <button>Entra</button>
@@ -51,7 +51,7 @@ def logout():
 
 
 # =========================
-# HOME
+# HOME + FILTRI
 # =========================
 @app.route("/")
 def home():
@@ -84,7 +84,7 @@ def home():
 
 
 # =========================
-# LIBRI CRUD
+# LIBRI
 # =========================
 @app.route("/aggiungi", methods=["POST"])
 def aggiungi():
@@ -152,7 +152,7 @@ def modifica(id):
 
 
 # =========================
-# ADMIN PANNELLO LINKS
+# ADMIN GENERI
 # =========================
 @app.route("/admin/generi")
 def admin_generi():
@@ -168,23 +168,6 @@ def admin_generi():
     return render_template_string(GENERI_HTML, generi=generi)
 
 
-@app.route("/admin/scaffali")
-def admin_scaffali():
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    scaffali = requests.get(
-        SUPABASE_URL + "/rest/v1/scaffali?select=*",
-        headers=headers
-    ).json()
-
-    return render_template_string(SCAFFALI_HTML, scaffali=scaffali)
-
-
-# =========================
-# GENERI CRUD
-# =========================
 @app.route("/admin/generi/aggiungi", methods=["POST"])
 def add_genere():
 
@@ -230,8 +213,22 @@ def delete_genere(id):
 
 
 # =========================
-# SCAFFALI CRUD
+# ADMIN SCAFFALI
 # =========================
+@app.route("/admin/scaffali")
+def admin_scaffali():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    scaffali = requests.get(
+        SUPABASE_URL + "/rest/v1/scaffali?select=*",
+        headers=headers
+    ).json()
+
+    return render_template_string(SCAFFALI_HTML, scaffali=scaffali)
+
+
 @app.route("/admin/scaffali/aggiungi", methods=["POST"])
 def add_scaffale():
 
@@ -274,6 +271,138 @@ def delete_scaffale(id):
     )
 
     return redirect("/admin/scaffali")
+
+
+# =========================
+# HTML
+# =========================
+HTML = """
+<h2>📚 Biblioteca</h2>
+
+{% if session.get("admin") %}
+<p>🔐 Admin attivo | <a href="/logout">Logout</a></p>
+{% else %}
+<a href="/login">Login</a>
+{% endif %}
+
+<hr>
+
+{% if session.get("admin") %}
+
+<a href="/admin/generi">📚 Generi</a>
+<a href="/admin/scaffali">📦 Scaffali</a>
+
+<h3>➕ Aggiungi libro</h3>
+<form method="POST" action="/aggiungi">
+    <input name="titolo" placeholder="Titolo">
+    <input name="autore" placeholder="Autore">
+
+    <select name="tipo">
+        <option value="libro">Libro</option>
+        <option value="rivista">Rivista</option>
+    </select>
+
+    <select name="genere">
+        {% for g in generi %}
+        <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
+        {% endfor %}
+    </select>
+
+    <select name="scaffale">
+        {% for s in scaffali %}
+        <option value="{{ s['nome'] }}">{{ s['nome'] }}</option>
+        {% endfor %}
+    </select>
+
+    <button>Aggiungi</button>
+</form>
+
+{% endif %}
+
+<hr>
+
+<h3>📖 Libri</h3>
+
+<ul>
+{% for l in libri %}
+<li>
+    <b>{{ l['titolo'] }}</b> - {{ l['autore'] }}
+
+    {% if session.get("admin") %}
+    <a href="/modifica/{{ l['id'] }}">✏️</a>
+    <a href="/elimina/{{ l['id'] }}">🗑</a>
+    {% endif %}
+</li>
+{% endfor %}
+</ul>
+"""
+
+
+FORM_MODIFICA = """
+<h2>Modifica libro</h2>
+<form method="POST">
+    <input name="titolo" value="{{ libro['titolo'] }}">
+    <input name="autore" value="{{ libro['autore'] }}">
+
+    <select name="tipo">
+        <option value="libro">Libro</option>
+        <option value="rivista">Rivista</option>
+    </select>
+
+    <input name="genere" value="{{ libro['genere'] }}">
+    <input name="scaffale" value="{{ libro['scaffale'] }}">
+
+    <button>Salva</button>
+</form>
+"""
+
+
+GENERI_HTML = """
+<h2>Generi</h2>
+<a href="/">Home</a>
+
+<form method="POST" action="/admin/generi/aggiungi">
+    <input name="nome">
+    <button>Aggiungi</button>
+</form>
+
+<ul>
+{% for g in generi %}
+<li>
+{{ g['nome'] }}
+<form method="POST" action="/admin/generi/modifica/{{ g['id'] }}">
+<input name="nome" value="{{ g['nome'] }}">
+<button>✔</button>
+</form>
+<a href="/admin/generi/elimina/{{ g['id'] }}">🗑</a>
+</li>
+{% endfor %}
+</ul>
+"""
+
+
+SCAFFALI_HTML = """
+<h2>Scaffali</h2>
+<a href="/">Home</a>
+
+<form method="POST" action="/admin/scaffali/aggiungi">
+    <input name="nome">
+    <button>Aggiungi</button>
+</form>
+
+<ul>
+{% for s in scaffali %}
+<li>
+{{ s['nome'] }}
+<form method="POST" action="/admin/scaffali/modifica/{{ s['id'] }}">
+<input name="nome" value="{{ s['nome'] }}">
+<button>✔</button>
+</form>
+<a href="/admin/scaffali/elimina/{{ s['id'] }}">🗑</a>
+</li>
+{% endfor %}
+</ul>
+"""
 
 
 # =========================
