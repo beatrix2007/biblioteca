@@ -255,7 +255,6 @@ a {
     <button>Aggiungi</button>
 </form>
 {% endif %}
-{% endif %}
 
 <hr>
 
