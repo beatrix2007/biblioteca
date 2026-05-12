@@ -16,6 +16,7 @@ headers = {
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json"
 }
+print("KEY:", SUPABASE_KEY)
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
