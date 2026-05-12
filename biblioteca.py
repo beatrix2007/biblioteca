@@ -122,15 +122,15 @@ def modifica(id):
         <form method="POST">
 
             <input name="titolo" value="{{ libro['titolo'] }}" required>
-            <input name="autore" value="{{ libro['autore'] }}" required>
+            <input name="autore" value="{{ libro['autore'] }}">
 
-            <select name="tipo" required>
+            <select name="tipo">
                 <option value="libro" {% if libro['tipo']=='libro' %}selected{% endif %}>Libro</option>
                 <option value="rivista" {% if libro['tipo']=='rivista' %}selected{% endif %}>Rivista</option>
                 <option value="fumetto" {% if libro['tipo']=='fumetto' %}selected{% endif %}>Fumetto</option>
             </select>
 
-            <select name="genere" required>
+            <select name="genere">
                 {% for g in generi %}
                     <option value="{{ g['nome'] }}" {% if g['nome']==libro['genere'] %}selected{% endif %}>
                         {{ g['nome'] }}
@@ -310,6 +310,9 @@ def home():
 def aggiungi():
     if not is_admin():
         return "Non autorizzato", 403
+
+    if not titolo:
+        return "❌ Compila tutti i campi obbligatori"
 
     data = {
         "titolo": request.form["titolo"].upper(),
