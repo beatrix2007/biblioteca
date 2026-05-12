@@ -190,26 +190,44 @@ a {
     text-decoration:none;
     color:white;
 }
+@media (max-width: 768px) {
+    div[style*="display:flex"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
 </style>
-<div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+<div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px;
+    border-bottom:1px solid #ddd;
+    margin-bottom:20px;
+">
 
-    <h2>📚 Biblioteca</h2>
+    <h2 style="margin:0;">📚 Biblioteca</h2>
 
-    {% if session.get("admin") %}
-        <div>
-            <span>🔐 Admin attivo</span>
+    <div>
+
+        {% if session.get("admin") %}
+            <span style="margin-right:10px;">🔐 Admin attivo</span>
             <a href="/logout"
-               style="margin-left:10px; padding:6px 10px; background:#e74c3c; color:white; border-radius:6px; text-decoration:none;">
+               style="padding:6px 12px; background:#e74c3c; color:white; border-radius:6px; text-decoration:none;">
                 Logout
             </a>
-        </div>
-    {% else %}
-        <a href="/login"
-           style="padding:6px 10px; background:#2c3e50; color:white; border-radius:6px; text-decoration:none;">
-            Login Admin
-        </a>
-    
+        {% else %}
+            <a href="/login"
+               style="padding:6px 12px; background:#2c3e50; color:white; border-radius:6px; text-decoration:none;">
+                Login Admin
+            </a>
+        {% endif %}
+
+    </div>
+
 </div>
+
 {% if session.get("admin") is true %}
 <h2>➕ Aggiungi libro</h2>
 <form method="POST" action="/aggiungi">
