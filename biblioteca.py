@@ -188,6 +188,21 @@ def elimina_scaffale(id):
 
     return redirect("/")
 
+@app.route("/admin/generi")
+def admin_generi():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    r = requests.get(
+        SUPABASE_URL + "/rest/v1/generi?select=*",
+        headers=headers
+    )
+
+    generi = r.json()
+
+    return render_template_string(GENERI_HTML, generi=generi)
+
 # =========================
 # MODIFICA
 # =========================
@@ -223,6 +238,21 @@ def modifica(id):
     libro = r.json()[0]
 
     return render_template_string(FORM_MODIFICA, libro=libro)
+
+@app.route("/admin/scaffali")
+def admin_scaffali():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    r = requests.get(
+        SUPABASE_URL + "/rest/v1/scaffali?select=*",
+        headers=headers
+    )
+
+    scaffali = r.json()
+
+    return render_template_string(SCAFFALI_HTML, scaffali=scaffali)
 
 
 # =========================
@@ -295,43 +325,23 @@ a {
 
 <div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-    <form method="POST" action="/admin/generi">
-        <h4>📚 Aggiungi genere</h4>
-        <input name="nome" placeholder="es. fantasy" required>
-        <button>Aggiungi</button>
-    </form>
+    {% if session.get("admin") %}
 
-    <ul>
-    {% for g in generi %}
-        <li>
-            {{ g['nome'] }}
-            <a href="/admin/generi/elimina/{{ g['id'] }}"
-            onclick="return confirm('Eliminare genere?');"
-            style="color:red; margin-left:10px;">
-                🗑
-            </a>
-        </li>
-    {% endfor %}
-    </ul>
+        <hr>
 
-    <form method="POST" action="/admin/scaffali">
-        <h4>📦 Aggiungi scaffale</h4>
-        <input name="nome" placeholder="es. A1" required>
-        <button>Aggiungi</button>
-    </form>
+        <h3>⚙️ Pannello Admin</h3>
 
-    <ul>
-    {% for s in scaffali %}
-        <li>
-            {{ s['nome'] }}
-            <a href="/admin/scaffali/elimina/{{ s['id'] }}"
-            onclick="return confirm('Eliminare scaffale?');"
-            style="color:red; margin-left:10px;">
-                🗑
-            </a>
-        </li>
-    {% endfor %}
-    </ul>
+        <a href="/admin/generi"
+        style="padding:8px 12px; background:#2c3e50; color:white; border-radius:6px; text-decoration:none;">
+            📚 Gestisci Generi
+        </a>
+
+        <a href="/admin/scaffali"
+        style="padding:8px 12px; background:#2c3e50; color:white; border-radius:6px; text-decoration:none; margin-left:10px;">
+            📦 Gestisci Scaffali
+        </a>
+
+    {% endif %}
 
 </div>
 
@@ -452,6 +462,184 @@ FORM_MODIFICA = """
 
 </form>
 """
+
+GENERI_HTML = """
+<h2>📚 Gestione Generi</h2>
+
+<a href="/" style="text-decoration:none;">⬅ Torna indietro</a>
+
+<hr>
+
+<form method="POST" action="/admin/generi/aggiungi">
+    <input name="nome" placeholder="Nuovo genere" required>
+    <button>Aggiungi</button>
+</form>
+
+<hr>
+
+<table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Azioni</th>
+    </tr>
+
+    {% for g in generi %}
+    <tr>
+        <td>{{ g['id'] }}</td>
+
+        <td>
+            <form method="POST" action="/admin/generi/modifica/{{ g['id'] }}">
+                <input name="nome" value="{{ g['nome'] }}">
+        </td>
+
+        <td>
+                <button>💾 Salva</button>
+            </form>
+
+            <a href="/admin/generi/elimina/{{ g['id'] }}"
+               onclick="return confirm('Eliminare?');"
+               style="color:red;">
+                🗑 Elimina
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+"""
+
+@app.route("/admin/generi/aggiungi", methods=["POST"])
+def add_genere():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.post(
+        SUPABASE_URL + "/rest/v1/generi",
+        headers=headers,
+        json={"nome": request.form["nome"]}
+    )
+
+    return redirect("/admin/generi")
+
+
+@app.route("/admin/generi/modifica/<int:id>", methods=["POST"])
+def edit_genere(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.patch(
+        SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}",
+        headers=headers,
+        json={"nome": request.form["nome"]}
+    )
+
+    return redirect("/admin/generi")
+
+
+@app.route("/admin/generi/elimina/<int:id>")
+def delete_genere(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.delete(
+        SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}",
+        headers=headers
+    )
+
+    return redirect("/admin/generi")
+
+SCAFFALI_HTML = """
+<h2>📦 Gestione Scaffali</h2>
+
+<a href="/" style="text-decoration:none;">⬅ Torna indietro</a>
+
+<hr>
+
+<form method="POST" action="/admin/scaffali/aggiungi">
+    <input name="nome" placeholder="Nuovo scaffale (es. A1)" required>
+    <button>Aggiungi</button>
+</form>
+
+<hr>
+
+<table border="1" cellpadding="8" style="border-collapse:collapse; width:100%;">
+    <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Azioni</th>
+    </tr>
+
+    {% for s in scaffali %}
+    <tr>
+        <td>{{ s['id'] }}</td>
+
+        <td>
+            <form method="POST" action="/admin/scaffali/modifica/{{ s['id'] }}">
+                <input name="nome" value="{{ s['nome'] }}">
+        </td>
+
+        <td>
+                <button>💾 Salva</button>
+            </form>
+
+            <a href="/admin/scaffali/elimina/{{ s['id'] }}"
+               onclick="return confirm('Eliminare scaffale?');"
+               style="color:red;">
+                🗑 Elimina
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+"""
+
+@app.route("/admin/scaffali/aggiungi", methods=["POST"])
+def add_scaffale():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.post(
+        SUPABASE_URL + "/rest/v1/scaffali",
+        headers=headers,
+        json={"nome": request.form["nome"]}
+    )
+
+    return redirect("/admin/scaffali")
+
+
+@app.route("/admin/scaffali/modifica/<int:id>", methods=["POST"])
+def edit_scaffale(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.patch(
+        SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}",
+        headers=headers,
+        json={"nome": request.form["nome"]}
+    )
+
+    return redirect("/admin/scaffali")
+
+
+@app.route("/admin/scaffali/elimina/<int:id>")
+def delete_scaffale(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.delete(
+        SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}",
+        headers=headers
+    )
+
+    return redirect("/admin/scaffali")
 
 
 # =========================
