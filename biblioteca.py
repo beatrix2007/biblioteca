@@ -411,10 +411,14 @@ def statistiche():
         genere = l.get("genere") or "Sconosciuto"
         conteggio_genere[genere] = conteggio_genere.get(genere, 0) + 1
 
+    conteggio_genere = dict(
+    sorted(conteggio_genere.items(), key=lambda x: x[1], reverse=True)
+    )
+    
     html = BASE + """
     <h3>📊 Libri per genere</h3>
 
-    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
 
     {% for genere, count in conteggio_genere.items() %}
     <div class="card">
