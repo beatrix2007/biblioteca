@@ -406,13 +406,19 @@ def statistiche():
     ).json()
 
     conteggio_genere = {}
+    conteggio_tipo = {}
 
     for l in libri:
         genere = l.get("genere") or "Sconosciuto"
         conteggio_genere[genere] = conteggio_genere.get(genere, 0) + 1
+        tipo = l.get("tipo") or "Sconosciuto"
+        conteggio_tipo[tipo] = conteggio_tipo.get(tipo, 0) + 1
 
     conteggio_genere = dict(
     sorted(conteggio_genere.items(), key=lambda x: x[1], reverse=True)
+    )
+    conteggio_tipo = dict(
+    sorted(conteggio_tipo.items(), key=lambda x: x[1], reverse=True)
     )
     
     html = BASE + """
@@ -430,6 +436,19 @@ def statistiche():
     </div>
 
     <hr>
+    <h3>📊 Libri per tipo</h3>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;">
+
+    {% for tipo, count in conteggio_tipo.items() %}
+    <div class="card">
+        📚 <b>{{ tipo }}</b><br>
+        {{ count }} libri
+    </div>
+    {% endfor %}
+
+    </div>
+    <hr>
 
     <a href="/" style="
         display:inline-block;
@@ -444,7 +463,7 @@ def statistiche():
     </a>
     """
 
-    return render_template_string(html, conteggio_genere=conteggio_genere)
+    return render_template_string(html, conteggio_genere=conteggio_genere, conteggio_tipo=conteggio_tipo)
 
 
 @app.route("/admin/generi/add", methods=["POST"])
