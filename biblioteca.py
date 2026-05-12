@@ -128,6 +128,38 @@ def elimina(id):
 
     return redirect("/")
 
+@app.route("/admin/generi", methods=["POST"])
+def add_genere():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    nome = request.form["nome"].strip().lower()
+
+    requests.post(
+        SUPABASE_URL + "/rest/v1/generi",
+        headers=headers,
+        json={"nome": nome}
+    )
+
+    return redirect("/")
+
+
+@app.route("/admin/scaffali", methods=["POST"])
+def add_scaffale():
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    nome = request.form["nome"].strip().upper()
+
+    requests.post(
+        SUPABASE_URL + "/rest/v1/scaffali",
+        headers=headers,
+        json={"nome": nome}
+    )
+
+    return redirect("/")
 
 # =========================
 # MODIFICA
@@ -227,6 +259,32 @@ a {
     </div>
 
 </div>
+
+{% if session.get("admin") %}
+
+<hr>
+
+<h2>⚙️ Gestione categorie</h2>
+
+<div style="display:flex; gap:20px; flex-wrap:wrap;">
+
+    <!-- GENERI -->
+    <form method="POST" action="/admin/generi">
+        <h4>📚 Aggiungi genere</h4>
+        <input name="nome" placeholder="es. fantasy" required>
+        <button>Aggiungi genere</button>
+    </form>
+
+    <!-- SCAFFALI -->
+    <form method="POST" action="/admin/scaffali">
+        <h4>📦 Aggiungi scaffale</h4>
+        <input name="nome" placeholder="es. A1" required>
+        <button>Aggiungi scaffale</button>
+    </form>
+
+</div>
+
+{% endif %}
 
 {% if session.get("admin") is true %}
 <h2>➕ Aggiungi libro</h2>
