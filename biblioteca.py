@@ -121,16 +121,16 @@ def modifica(id):
 
         <form method="POST">
 
-            <input name="titolo" value="{{ libro['titolo'] }}">
-            <input name="autore" value="{{ libro['autore'] }}">
+            <input name="titolo" value="{{ libro['titolo'] }}" required>
+            <input name="autore" value="{{ libro['autore'] }}" required>
 
-            <select name="tipo">
+            <select name="tipo" required>
                 <option value="libro" {% if libro['tipo']=='libro' %}selected{% endif %}>Libro</option>
                 <option value="rivista" {% if libro['tipo']=='rivista' %}selected{% endif %}>Rivista</option>
                 <option value="fumetto" {% if libro['tipo']=='fumetto' %}selected{% endif %}>Fumetto</option>
             </select>
 
-            <select name="genere">
+            <select name="genere" required>
                 {% for g in generi %}
                     <option value="{{ g['nome'] }}" {% if g['nome']==libro['genere'] %}selected{% endif %}>
                         {{ g['nome'] }}
