@@ -131,8 +131,8 @@ def home():
     <h2>📚 Biblioteca</h2>
 
     {% if session.get("admin") %}
-        <a class="btn dark" href="/logout">Logout</a>
         <a class="btn blue" href="/admin">Admin</a>
+        <a class="btn dark" href="/logout">Logout</a>
     {% else %}
         <a class="btn dark" href="/login">Login</a>
     {% endif %}
