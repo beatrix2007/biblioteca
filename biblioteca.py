@@ -338,7 +338,7 @@ td, th {
 # =========================
 # HTML
 # =========================
-HTML = return BASE_STYLE + """
+HTML = BASE_STYLE + """
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <div class="container">
@@ -433,7 +433,7 @@ HTML = return BASE_STYLE + """
 """
 
 
-FORM_MODIFICA = return BASE_STYLE + """
+FORM_MODIFICA = BASE_STYLE + """
 <div class="card">
 <h2>✏️ Modifica libro</h2>
 
@@ -459,7 +459,7 @@ FORM_MODIFICA = return BASE_STYLE + """
 """
 
 
-GENERI_HTML = return BASE_STYLE + """
+GENERI_HTML = BASE_STYLE + """
 <h2>Generi</h2>
 <a href="/">Home</a>
 
@@ -483,7 +483,7 @@ GENERI_HTML = return BASE_STYLE + """
 """
 
 
-SCAFFALI_HTML = return BASE_STYLE + """
+SCAFFALI_HTML = BASE_STYLE + """
 <h2>Scaffali</h2>
 <a href="/">Home</a>
 
@@ -506,7 +506,7 @@ SCAFFALI_HTML = return BASE_STYLE + """
 </ul>
 """
 
-LOGIN_HTML = return BASE_STYLE + """
+LOGIN_HTML = BASE_STYLE + """
     <h2>Login Admin</h2>
     <form method="POST">
         <input type="password" name="password">
