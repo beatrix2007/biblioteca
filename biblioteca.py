@@ -161,6 +161,33 @@ def add_scaffale():
 
     return redirect("/")
 
+@app.route("/admin/generi/elimina/<int:id>")
+def elimina_genere(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.delete(
+        SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}",
+        headers=headers
+    )
+
+    return redirect("/")
+
+
+@app.route("/admin/scaffali/elimina/<int:id>")
+def elimina_scaffale(id):
+
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    requests.delete(
+        SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}",
+        headers=headers
+    )
+
+    return redirect("/")
+
 # =========================
 # MODIFICA
 # =========================
@@ -268,19 +295,43 @@ a {
 
 <div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-    <!-- GENERI -->
     <form method="POST" action="/admin/generi">
         <h4>📚 Aggiungi genere</h4>
         <input name="nome" placeholder="es. fantasy" required>
-        <button>Aggiungi genere</button>
+        <button>Aggiungi</button>
     </form>
 
-    <!-- SCAFFALI -->
+    <ul>
+    {% for g in generi %}
+        <li>
+            {{ g['nome'] }}
+            <a href="/admin/generi/elimina/{{ g['id'] }}"
+            onclick="return confirm('Eliminare genere?');"
+            style="color:red; margin-left:10px;">
+                🗑
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+
     <form method="POST" action="/admin/scaffali">
         <h4>📦 Aggiungi scaffale</h4>
         <input name="nome" placeholder="es. A1" required>
-        <button>Aggiungi scaffale</button>
+        <button>Aggiungi</button>
     </form>
+
+    <ul>
+    {% for s in scaffali %}
+        <li>
+            {{ s['nome'] }}
+            <a href="/admin/scaffali/elimina/{{ s['id'] }}"
+            onclick="return confirm('Eliminare scaffale?');"
+            style="color:red; margin-left:10px;">
+                🗑
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
 
 </div>
 
