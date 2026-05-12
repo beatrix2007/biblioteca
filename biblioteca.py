@@ -32,10 +32,16 @@ def login():
         if request.form["password"] == ADMIN_PASSWORD:
             session.clear()
             session["admin"] = True
-            return redirect("/login")
+            return redirect("/")
         return "❌ Password errata"
 
-    return render_template_string(LOGIN_HTML)
+    return """
+    <h2>Login Admin</h2>
+    <form method="POST">
+        <input type="password" name="password">
+        <button>Entra</button>
+    </form>
+    """
 
 
 @app.route("/logout")
@@ -338,8 +344,87 @@ td, th {
 # =========================
 # HTML
 # =========================
-HTML = BASE_STYLE + """
+HTML = """
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ddd;
+}
+
+button {
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2c3e50;
+    color:white;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+a.btn {
+    padding:8px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:white;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.btn-red { background:#e74c3c; }
+.btn-blue { background:#3498db; }
+.btn-dark { background:#2c3e50; }
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
 
 <div class="container">
 
@@ -433,33 +518,182 @@ HTML = BASE_STYLE + """
 """
 
 
-FORM_MODIFICA = BASE_STYLE + """
-<div class="card">
-<h2>✏️ Modifica libro</h2>
+FORM_MODIFICA = """
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
 
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ddd;
+}
+
+button {
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2c3e50;
+    color:white;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+a.btn {
+    padding:8px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:white;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.btn-red { background:#e74c3c; }
+.btn-blue { background:#3498db; }
+.btn-dark { background:#2c3e50; }
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
+<h2>Modifica libro</h2>
 <form method="POST">
+    <input name="titolo" value="{{ libro['titolo'] }}">
+    <input name="autore" value="{{ libro['autore'] }}">
 
-<input name="titolo" value="{{ libro['titolo'] }}">
-<input name="autore" value="{{ libro['autore'] }}">
+    <select name="tipo">
+        <option value="libro">Libro</option>
+        <option value="rivista">Rivista</option>
+    </select>
 
-<select name="tipo">
-    <option value="libro">Libro</option>
-    <option value="rivista">Rivista</option>
-</select>
+    <input name="genere" value="{{ libro['genere'] }}">
+    <input name="scaffale" value="{{ libro['scaffale'] }}">
 
-<input name="genere" value="{{ libro['genere'] }}">
-<input name="scaffale" value="{{ libro['scaffale'] }}">
-
-<button>Salva</button>
-
+    <button>Salva</button>
 </form>
-
-</div>
-</div>
 """
 
 
-GENERI_HTML = BASE_STYLE + """
+GENERI_HTML = """
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ddd;
+}
+
+button {
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2c3e50;
+    color:white;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+a.btn {
+    padding:8px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:white;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.btn-red { background:#e74c3c; }
+.btn-blue { background:#3498db; }
+.btn-dark { background:#2c3e50; }
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
 <h2>Generi</h2>
 <a href="/">Home</a>
 
@@ -483,7 +717,85 @@ GENERI_HTML = BASE_STYLE + """
 """
 
 
-SCAFFALI_HTML = BASE_STYLE + """
+SCAFFALI_HTML = """
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ddd;
+}
+
+button {
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2c3e50;
+    color:white;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+a.btn {
+    padding:8px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:white;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.btn-red { background:#e74c3c; }
+.btn-blue { background:#3498db; }
+.btn-dark { background:#2c3e50; }
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
 <h2>Scaffali</h2>
 <a href="/">Home</a>
 
@@ -505,14 +817,6 @@ SCAFFALI_HTML = BASE_STYLE + """
 {% endfor %}
 </ul>
 """
-
-LOGIN_HTML = BASE_STYLE + """
-    <h2>Login Admin</h2>
-    <form method="POST">
-        <input type="password" name="password">
-        <button>Entra</button>
-    </form>
-    """
 
 
 # =========================
