@@ -311,7 +311,7 @@ def aggiungi():
     if not is_admin():
         return "Non autorizzato", 403
 
-    if not titolo:
+    if not "titolo":
         return "❌ Compila tutti i campi obbligatori"
 
     data = {
