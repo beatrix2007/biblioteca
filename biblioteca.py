@@ -400,8 +400,11 @@ def statistiche():
     if not is_admin():
         return "Non autorizzato", 403
 
-    g = requests.get(SUPABASE_URL + "/rest/v1/dashboard?select=*", headers=headers).json()
-    libri = requests.get(url, headers=headers).json()
+    libri = requests.get(
+        SUPABASE_URL + "/rest/v1/libri?select=*",
+        headers=headers
+    ).json()
+
     conteggio_genere = {}
 
     for l in libri:
@@ -421,7 +424,9 @@ def statistiche():
     {% endfor %}
 
     </div>
+
     <hr>
+
     <a href="/" style="
         display:inline-block;
         padding:10px 14px;
@@ -435,7 +440,7 @@ def statistiche():
     </a>
     """
 
-    return render_template_string(html, generi=g, conteggio_genere=conteggio_genere)
+    return render_template_string(html, conteggio_genere=conteggio_genere)
 
 
 @app.route("/admin/generi/add", methods=["POST"])
