@@ -415,11 +415,16 @@ a.btn {
 <div class="card">
 <h3>🔍 Libri</h3>
 
-{% if libri|length == 0 %}
-<p>Nessun libro trovato</p>
-{% endif %}
-
 <div class="grid">
+
+{% if libri|length == 0 %}
+
+<div class="card">
+    <h3>📭 Nessun libro</h3>
+    <p>Inserisci il primo libro dalla sezione admin.</p>
+</div>
+
+{% else %}
 
 {% for l in libri %}
 <div class="card">
@@ -435,6 +440,8 @@ a.btn {
 
 </div>
 {% endfor %}
+
+{% endif %}
 
 </div>
 </div>
