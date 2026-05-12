@@ -312,7 +312,9 @@ def aggiungi():
         return "Non autorizzato", 403
 
     if not  request.form["titolo"].upper():
-        return "❌ Compila tutti i campi obbligatori"
+        return """
+        <div class="card">❌ Titolo obbligatorio</div>
+        """
 
     data = {
         "titolo": request.form["titolo"].upper(),
