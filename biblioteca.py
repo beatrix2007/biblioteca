@@ -9,7 +9,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 # SUPABASE CONFIG
 # =========================
 SUPABASE_URL = "https://ugviadmtvtkynvgztfmj.supabase.co"
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVndmlhZG10dnRreW52Z3p0Zm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MzA2NzMsImV4cCI6MjA5NDEwNjY3M30.M3zG5wfdIlAvZhbvkAK1zarpezJf8d1HpgPhxQeV_cQ"
 
 headers = {
     "apikey": SUPABASE_KEY,
