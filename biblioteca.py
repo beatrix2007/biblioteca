@@ -338,8 +338,7 @@ def scaffali():
     s = requests.get(SUPABASE_URL + "/rest/v1/scaffali?select=*", headers=headers).json()
 
     html = BASE + """
-    <h2>📦 Scaffali</h2>
-
+    <h2>📚 Scaffali</h2>
     <form method="POST" action="/admin/scaffali/add">
         <input name="nome">
         <button>Aggiungi</button>
@@ -351,9 +350,7 @@ def scaffali():
             <a class="btn red" href="/admin/scaffali/delete/{{ x['id'] }}">X</a>
         </div>
     {% endfor %}
-    </div>
     <hr>
-
     <a href="/" style="
         display:inline-block;
         padding:10px 14px;
