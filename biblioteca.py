@@ -96,7 +96,78 @@ a { text-decoration:none; }
 <div class="container">
 """
 
+@app.route("/modifica/<int:id>", methods=["GET", "POST"])
+def modifica(id):
+    if not is_admin():
+        return "Non autorizzato", 403
 
+    # GET → mostra form
+    if request.method == "GET":
+        libro = requests.get(
+            SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}&select=*",
+            headers=headers
+        ).json()
+
+        if not libro:
+            return "Libro non trovato"
+
+        libro = libro[0]
+
+        generi = requests.get(SUPABASE_URL + "/rest/v1/generi?select=*", headers=headers).json()
+        scaffali = requests.get(SUPABASE_URL + "/rest/v1/scaffali?select=*", headers=headers).json()
+
+        html = BASE + """
+        <h2>✏️ Modifica libro</h2>
+
+        <form method="POST">
+
+            <input name="titolo" value="{{ libro['titolo'] }}">
+            <input name="autore" value="{{ libro['autore'] }}">
+
+            <select name="tipo">
+                <option value="libro" {% if libro['tipo']=='libro' %}selected{% endif %}>Libro</option>
+                <option value="rivista" {% if libro['tipo']=='rivista' %}selected{% endif %}>Rivista</option>
+                <option value="fumetto" {% if libro['tipo']=='fumetto' %}selected{% endif %}>Fumetto</option>
+            </select>
+
+            <select name="genere">
+                {% for g in generi %}
+                    <option value="{{ g['nome'] }}" {% if g['nome']==libro['genere'] %}selected{% endif %}>
+                        {{ g['nome'] }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="scaffale">
+                {% for s in scaffali %}
+                    <option value="{{ s['nome'] }}" {% if s['nome']==libro['scaffale'] %}selected{% endif %}>
+                        {{ s['nome'] }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button>Salva modifiche</button>
+        </form>
+        """
+
+        return render_template_string(html, libro=libro, generi=generi, scaffali=scaffali)
+
+    # POST → salva modifiche
+    data = {
+        "titolo": request.form["titolo"].upper(),
+        "autore": request.form["autore"].upper(),
+        "tipo": request.form["tipo"],
+        "genere": request.form["genere"],
+        "scaffale": request.form["scaffale"]
+    }
+
+    requests.patch(
+        SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}",
+        headers=headers,
+        json=data
+    )
+
+    return redirect("/")
 # =========================
 # HOME
 # =========================
