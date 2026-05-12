@@ -277,23 +277,115 @@ def delete_scaffale(id):
 # HTML
 # =========================
 HTML = """
-<h2>📚 Biblioteca</h2>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border-radius:8px;
+    border:1px solid #ddd;
+}
+
+button {
+    padding:10px 14px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    background:#2c3e50;
+    color:white;
+}
+
+button:hover {
+    opacity:0.9;
+}
+
+a.btn {
+    padding:8px 12px;
+    border-radius:8px;
+    text-decoration:none;
+    color:white;
+    display:inline-block;
+    margin-right:5px;
+}
+
+.btn-red { background:#e74c3c; }
+.btn-blue { background:#3498db; }
+.btn-dark { background:#2c3e50; }
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
+
+<div class="container">
+
+<div class="header">
+    <h2>📚 Biblioteca</h2>
+
+    <div>
+    {% if session.get("admin") %}
+        🔐 Admin
+        <a class="btn btn-red" href="/logout">Logout</a>
+    {% else %}
+        <a class="btn btn-dark" href="/login">Login</a>
+    {% endif %}
+    </div>
+</div>
 
 {% if session.get("admin") %}
-<p>🔐 Admin attivo | <a href="/logout">Logout</a></p>
-{% else %}
-<a href="/login">Login</a>
-{% endif %}
 
-<hr>
+<div class="card">
+<h3>⚙️ Admin Panel</h3>
+<a class="btn btn-dark" href="/admin/generi">📚 Generi</a>
+<a class="btn btn-dark" href="/admin/scaffali">📦 Scaffali</a>
+</div>
 
-{% if session.get("admin") %}
-
-<a href="/admin/generi">📚 Generi</a>
-<a href="/admin/scaffali">📦 Scaffali</a>
-
+<div class="card">
 <h3>➕ Aggiungi libro</h3>
+
 <form method="POST" action="/aggiungi">
+
     <input name="titolo" placeholder="Titolo">
     <input name="autore" placeholder="Autore">
 
@@ -314,27 +406,40 @@ HTML = """
         {% endfor %}
     </select>
 
-    <button>Aggiungi</button>
+    <button>➕ Aggiungi</button>
 </form>
+</div>
 
 {% endif %}
 
-<hr>
+<div class="card">
+<h3>🔍 Libri</h3>
 
-<h3>📖 Libri</h3>
+{% if libri|length == 0 %}
+<p>Nessun libro trovato</p>
+{% endif %}
 
-<ul>
+<div class="grid">
+
 {% for l in libri %}
-<li>
-    <b>{{ l['titolo'] }}</b> - {{ l['autore'] }}
+<div class="card">
+
+    <h3>{{ l['titolo'] }}</h3>
+    <p>✍️ {{ l['autore'] }}</p>
+    <p>📚 {{ l['tipo'] }} | {{ l['genere'] }} | {{ l['scaffale'] }}</p>
 
     {% if session.get("admin") %}
-    <a href="/modifica/{{ l['id'] }}">✏️</a>
-    <a href="/elimina/{{ l['id'] }}">🗑</a>
+        <a class="btn btn-blue" href="/modifica/{{ l['id'] }}">✏️</a>
+        <a class="btn btn-red" href="/elimina/{{ l['id'] }}">🗑</a>
     {% endif %}
-</li>
+
+</div>
 {% endfor %}
-</ul>
+
+</div>
+</div>
+
+</div>
 """
 
 
