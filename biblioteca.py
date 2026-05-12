@@ -283,7 +283,6 @@ def generi():
 
     html = BASE + """
     <h2>📚 Generi</h2>
-
     <form method="POST" action="/admin/generi/add">
         <input name="nome">
         <button>Aggiungi</button>
@@ -295,7 +294,18 @@ def generi():
             <a class="btn red" href="/admin/generi/delete/{{ x['id'] }}">X</a>
         </div>
     {% endfor %}
-    </div>
+    <hr>
+    <a href="/" style="
+        display:inline-block;
+        padding:10px 14px;
+        background:#2c3e50;
+        color:white;
+        border-radius:8px;
+        text-decoration:none;
+        margin-top:10px;
+    ">
+    🏠 Torna alla Home
+    </a>
     """
 
     return render_template_string(html, generi=g)
@@ -340,6 +350,19 @@ def scaffali():
         </div>
     {% endfor %}
     </div>
+    <hr>
+
+    <a href="/" style="
+        display:inline-block;
+        padding:10px 14px;
+        background:#2c3e50;
+        color:white;
+        border-radius:8px;
+        text-decoration:none;
+        margin-top:10px;
+    ">
+    🏠 Torna alla Home
+    </a>
     """
 
     return render_template_string(html, scaffali=s)
