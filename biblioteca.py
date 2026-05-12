@@ -287,7 +287,10 @@ def home():
             {% if session.get("admin") %}
             <div style="margin-top:10px;">
                 <a class="btn blue" href="/modifica/{{ l['id'] }}">Modifica</a>
-                <a class="btn red" href="/elimina/{{ l['id'] }}">Elimina</a>
+                <a class="btn red" href="/elimina/{{ l['id'] }}"
+                onclick="return confirm('Sei sicura di voler eliminare questo libro?')">
+                Elimina
+                </a>
             </div>
             {% endif %}
         </div>
