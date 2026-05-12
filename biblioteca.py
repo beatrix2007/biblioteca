@@ -93,6 +93,18 @@ a { text-decoration:none; }
 .dark { background:#2c3e50; }
 </style>
 
+<script>
+function toggleTrama(id) {
+    const el = document.getElementById("trama-" + id);
+
+    if (el.style.display === "none") {
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
+</script>
+
 <div class="container">
 """
 
@@ -159,6 +171,7 @@ def modifica(id):
         "tipo": request.form["tipo"],
         "genere": request.form["genere"],
         "scaffale": request.form["scaffale"]
+        "trama": request.form ["trama", ""]
     }
 
     requests.patch(
@@ -237,6 +250,8 @@ def home():
                 {% endfor %}
             </select>
 
+            <textarea name="trama" placeholder="Trama"></textarea>
+
             <button>Aggiungi</button>
             </form>
         </div>
@@ -279,22 +294,32 @@ def home():
     {% if libri|length == 0 %}
         <div class="card">📭 Nessun libro</div>
     {% else %}
-        {% for l in libri %}
-        <div class="card">
-            <b>{{ l['titolo'] }}</b><br>
-            ✍️ {{ l['autore'] }}<br>
-            📚 {{ l['tipo'] }} | {{ l['genere'] }} | {{ l['scaffale'] }}
+            {% for l in libri %}
+            <div class="card">
+        <b>{{ l['titolo'] }}</b><br>
+        ✍️ {{ l['autore'] }}<br>
+        📚 {{ l['tipo'] }} | {{ l['genere'] }} | {{ l['scaffale'] }}
 
-            {% if session.get("admin") %}
-            <div style="margin-top:10px;">
-                <a class="btn blue" href="/modifica/{{ l['id'] }}">Modifica</a>
-                <a class="btn red" href="/elimina/{{ l['id'] }}"
-                onclick="return confirm('Sei sicura di voler eliminare questo libro?')">
-                Elimina
-                </a>
+        {% if l.get('trama') %}
+        <div style="margin-top:10px;">
+            <button onclick="toggleTrama({{ l['id'] }})">➕ Mostra trama</button>
+
+            <div id="trama-{{ l['id'] }}" style="display:none; margin-top:10px;">
+                📖 {{ l['trama'] }}
             </div>
-            {% endif %}
         </div>
+        {% endif %}
+
+        {% if session.get("admin") %}
+        <div style="margin-top:10px;">
+            <a class="btn blue" href="/modifica/{{ l['id'] }}">Modifica</a>
+            <a class="btn red" href="/elimina/{{ l['id'] }}"
+            onclick="return confirm('Sei sicura di voler eliminare questo libro?')">
+            Elimina
+            </a>
+        </div>
+    {% endif %}
+    </div>
         {% endfor %}
     {% endif %}
 
@@ -323,6 +348,7 @@ def aggiungi():
         "tipo": request.form["tipo"],
         "genere": request.form["genere"],
         "scaffale": request.form["scaffale"]
+        "trama": request.form["trama", ""]
     }
 
     requests.post(SUPABASE_URL + "/rest/v1/libri", headers=headers, json=data)
@@ -539,3 +565,5 @@ def delete_scaffale(id):
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
+
