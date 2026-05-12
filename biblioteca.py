@@ -32,16 +32,10 @@ def login():
         if request.form["password"] == ADMIN_PASSWORD:
             session.clear()
             session["admin"] = True
-            return redirect("/")
+            return redirect("/login")
         return "❌ Password errata"
 
-    return """
-    <h2>Login Admin</h2>
-    <form method="POST">
-        <input type="password" name="password">
-        <button>Entra</button>
-    </form>
-    """
+    return render_template_string(LOGIN_HTML)
 
 
 @app.route("/logout")
@@ -272,35 +266,20 @@ def delete_scaffale(id):
 
     return redirect("/admin/scaffali")
 
-
-# =========================
-# HTML
-# =========================
-HTML = """
+BASE_STYLE = """
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
+    font-family: Arial;
+    background:#f4f6f8;
+    margin:0;
 }
 
 .container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-.header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+    max-width:900px;
+    margin:auto;
+    padding:20px;
 }
 
 .card {
@@ -315,48 +294,52 @@ input, select {
     width:100%;
     padding:10px;
     margin:5px 0;
-    border-radius:8px;
     border:1px solid #ddd;
+    border-radius:8px;
 }
 
 button {
     padding:10px 14px;
     border:none;
     border-radius:8px;
-    cursor:pointer;
     background:#2c3e50;
     color:white;
+    cursor:pointer;
 }
 
-button:hover {
-    opacity:0.9;
-}
+button:hover { opacity:0.9; }
 
 a.btn {
+    display:inline-block;
     padding:8px 12px;
     border-radius:8px;
     text-decoration:none;
     color:white;
-    display:inline-block;
-    margin-right:5px;
 }
 
-.btn-red { background:#e74c3c; }
 .btn-blue { background:#3498db; }
+.btn-red { background:#e74c3c; }
 .btn-dark { background:#2c3e50; }
 
-.grid {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
+table {
+    width:100%;
+    border-collapse:collapse;
 }
 
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns:1fr 1fr;
-    }
+td, th {
+    padding:10px;
+    border-bottom:1px solid #ddd;
 }
+
 </style>
+
+<div class="container">
+"""
+# =========================
+# HTML
+# =========================
+HTML = return BASE_STYLE + """
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <div class="container">
 
@@ -450,26 +433,33 @@ a.btn {
 """
 
 
-FORM_MODIFICA = """
-<h2>Modifica libro</h2>
+FORM_MODIFICA = return BASE_STYLE + """
+<div class="card">
+<h2>✏️ Modifica libro</h2>
+
 <form method="POST">
-    <input name="titolo" value="{{ libro['titolo'] }}">
-    <input name="autore" value="{{ libro['autore'] }}">
 
-    <select name="tipo">
-        <option value="libro">Libro</option>
-        <option value="rivista">Rivista</option>
-    </select>
+<input name="titolo" value="{{ libro['titolo'] }}">
+<input name="autore" value="{{ libro['autore'] }}">
 
-    <input name="genere" value="{{ libro['genere'] }}">
-    <input name="scaffale" value="{{ libro['scaffale'] }}">
+<select name="tipo">
+    <option value="libro">Libro</option>
+    <option value="rivista">Rivista</option>
+</select>
 
-    <button>Salva</button>
+<input name="genere" value="{{ libro['genere'] }}">
+<input name="scaffale" value="{{ libro['scaffale'] }}">
+
+<button>Salva</button>
+
 </form>
+
+</div>
+</div>
 """
 
 
-GENERI_HTML = """
+GENERI_HTML = return BASE_STYLE + """
 <h2>Generi</h2>
 <a href="/">Home</a>
 
@@ -493,7 +483,7 @@ GENERI_HTML = """
 """
 
 
-SCAFFALI_HTML = """
+SCAFFALI_HTML = return BASE_STYLE + """
 <h2>Scaffali</h2>
 <a href="/">Home</a>
 
@@ -515,6 +505,14 @@ SCAFFALI_HTML = """
 {% endfor %}
 </ul>
 """
+
+LOGIN_HTML = return BASE_STYLE + """
+    <h2>Login Admin</h2>
+    <form method="POST">
+        <input type="password" name="password">
+        <button>Entra</button>
+    </form>
+    """
 
 
 # =========================
