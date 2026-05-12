@@ -137,6 +137,38 @@ def home():
         <a class="btn dark" href="/login">Login</a>
     {% endif %}
 
+    {% if session.get("admin") %}
+    <div class="card">
+        <h3>➕ Aggiungi libro</h3>
+        <form method="POST" action="/aggiungi">
+
+            <input name="titolo" placeholder="Titolo">
+            <input name="autore" placeholder="Autore">
+
+            <select name="tipo">
+                <option value="libro">Libro</option>
+                <option value="rivista">Rivista</option>
+            </select>
+
+            <select name="genere">
+                <option value="-" selected>-</option>
+                {% for g in generi %}
+                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="scaffale">
+                <option value="-" selected>-</option>
+                {% for g in scaffali %}
+                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
+                {% endfor %}
+            </select>
+
+            <button>Aggiungi</button>
+            </form>
+        </div>
+    {% endif %}
+
     <div class="card">
     <h3>🔍 Filtri</h3>
     <form method="GET">
@@ -167,38 +199,6 @@ def home():
         <button>Cerca</button>
     </form>
     </div>
-
-    {% if session.get("admin") %}
-    <div class="card">
-        <h3>➕ Aggiungi libro</h3>
-        <form method="POST" action="/aggiungi">
-
-            <input name="titolo" placeholder="Titolo">
-            <input name="autore" placeholder="Autore">
-
-            <select name="tipo">
-                <option value="libro">Libro</option>
-                <option value="rivista">Rivista</option>
-            </select>
-
-            <select name="genere">
-                <option value="-" selected>-</option>
-                {% for g in generi %}
-                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
-                {% endfor %}
-            </select>
-
-            <select name="scaffale">
-                <option value="-" selected>-</option>
-                {% for g in scaffali %}
-                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
-                {% endfor %}
-            </select>
-
-            <button>Aggiungi</button>
-        </form>
-    </div>
-    {% endif %}
 
     <h3>📖 Libri</h3>
 
