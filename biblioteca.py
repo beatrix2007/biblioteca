@@ -170,7 +170,7 @@ def modifica(id):
         "autore": request.form["autore"].upper(),
         "tipo": request.form["tipo"],
         "genere": request.form["genere"],
-        "scaffale": request.form["scaffale"]
+        "scaffale": request.form["scaffale"],
         "trama": request.form ["trama", ""]
     }
 
@@ -347,7 +347,7 @@ def aggiungi():
         "autore": request.form["autore"].upper(),
         "tipo": request.form["tipo"],
         "genere": request.form["genere"],
-        "scaffale": request.form["scaffale"]
+        "scaffale": request.form["scaffale"],
         "trama": request.form["trama", ""]
     }
 
