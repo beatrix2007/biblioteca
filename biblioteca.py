@@ -182,14 +182,16 @@ def home():
             </select>
 
             <select name="genere">
+                <option value="-" selected>-</option>
                 {% for g in generi %}
                     <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
                 {% endfor %}
             </select>
 
             <select name="scaffale">
-                {% for s in scaffali %}
-                    <option value="{{ s['nome'] }}">{{ s['nome'] }}</option>
+                <option value="-" selected>-</option>
+                {% for g in scaffali %}
+                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
                 {% endfor %}
             </select>
 
