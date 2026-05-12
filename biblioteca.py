@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-key")
 
 # =========================
-# SUPABASE
+# SUPABASE CONFIG
 # =========================
 SUPABASE_URL = "https://ugviadmtvtkynvgztfmj.supabase.co"
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -17,11 +17,11 @@ headers = {
     "Content-Type": "application/json"
 }
 
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+
 # =========================
 # AUTH
 # =========================
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
-
 def is_admin():
     return session.get("admin") is True
 
@@ -30,7 +30,6 @@ def is_admin():
 def login():
     if request.method == "POST":
         if request.form["password"] == ADMIN_PASSWORD:
-            session.clear()
             session["admin"] = True
             return redirect("/")
         return "❌ Password errata"
@@ -51,7 +50,54 @@ def logout():
 
 
 # =========================
-# HOME + FILTRI
+# BASE UI
+# =========================
+BASE = """
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body { font-family: Arial; background:#f4f6f8; margin:0; }
+.container { max-width:900px; margin:auto; padding:20px; }
+
+.card {
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+}
+
+input, select {
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+
+button {
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#2c3e50;
+    color:white;
+    cursor:pointer;
+}
+
+a { text-decoration:none; }
+
+.btn { padding:6px 10px; border-radius:8px; color:white; display:inline-block; }
+.red { background:#e74c3c; }
+.blue { background:#3498db; }
+.dark { background:#2c3e50; }
+</style>
+
+<div class="container">
+"""
+
+
+# =========================
+# HOME
 # =========================
 @app.route("/")
 def home():
@@ -80,15 +126,109 @@ def home():
     generi = requests.get(SUPABASE_URL + "/rest/v1/generi?select=*", headers=headers).json()
     scaffali = requests.get(SUPABASE_URL + "/rest/v1/scaffali?select=*", headers=headers).json()
 
-    return render_template_string(HTML, libri=libri, generi=generi, scaffali=scaffali)
+    html = BASE + """
+    <h2>📚 Biblioteca</h2>
+
+    {% if session.get("admin") %}
+        <a class="btn dark" href="/logout">Logout</a>
+        <a class="btn blue" href="/admin">Admin</a>
+    {% else %}
+        <a class="btn dark" href="/login">Login</a>
+    {% endif %}
+
+    <div class="card">
+    <h3>🔍 Filtri</h3>
+    <form method="GET">
+
+        <input name="titolo" placeholder="Titolo">
+        <input name="autore" placeholder="Autore">
+
+        <select name="tipo">
+            <option value="">Tipo</option>
+            <option value="libro">Libro</option>
+            <option value="rivista">Rivista</option>
+        </select>
+
+        <select name="genere">
+            <option value="">Genere</option>
+            {% for g in generi %}
+                <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="scaffale">
+            <option value="">Scaffale</option>
+            {% for s in scaffali %}
+                <option value="{{ s['nome'] }}">{{ s['nome'] }}</option>
+            {% endfor %}
+        </select>
+
+        <button>Cerca</button>
+    </form>
+    </div>
+
+    {% if session.get("admin") %}
+    <div class="card">
+        <h3>➕ Aggiungi libro</h3>
+        <form method="POST" action="/aggiungi">
+
+            <input name="titolo" placeholder="Titolo">
+            <input name="autore" placeholder="Autore">
+
+            <select name="tipo">
+                <option value="libro">Libro</option>
+                <option value="rivista">Rivista</option>
+            </select>
+
+            <select name="genere">
+                {% for g in generi %}
+                    <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="scaffale">
+                {% for s in scaffali %}
+                    <option value="{{ s['nome'] }}">{{ s['nome'] }}</option>
+                {% endfor %}
+            </select>
+
+            <button>Aggiungi</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <h3>📖 Libri</h3>
+
+    {% if libri|length == 0 %}
+        <div class="card">📭 Nessun libro</div>
+    {% else %}
+        {% for l in libri %}
+        <div class="card">
+            <b>{{ l['titolo'] }}</b><br>
+            ✍️ {{ l['autore'] }}<br>
+            📚 {{ l['tipo'] }} | {{ l['genere'] }} | {{ l['scaffale'] }}
+
+            {% if session.get("admin") %}
+            <div style="margin-top:10px;">
+                <a class="btn blue" href="/modifica/{{ l['id'] }}">Modifica</a>
+                <a class="btn red" href="/elimina/{{ l['id'] }}">Elimina</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    </div>
+    """
+
+    return render_template_string(html, libri=libri, generi=generi, scaffali=scaffali)
 
 
 # =========================
-# LIBRI
+# LIBRI CRUD
 # =========================
 @app.route("/aggiungi", methods=["POST"])
 def aggiungi():
-
     if not is_admin():
         return "Non autorizzato", 403
 
@@ -101,722 +241,121 @@ def aggiungi():
     }
 
     requests.post(SUPABASE_URL + "/rest/v1/libri", headers=headers, json=data)
-
     return redirect("/")
 
 
 @app.route("/elimina/<int:id>")
 def elimina(id):
-
     if not is_admin():
         return "Non autorizzato", 403
 
-    requests.delete(
-        SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}",
-        headers=headers
-    )
-
+    requests.delete(SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}", headers=headers)
     return redirect("/")
 
 
-@app.route("/modifica/<int:id>", methods=["GET", "POST"])
-def modifica(id):
-
+# =========================
+# ADMIN DASHBOARD
+# =========================
+@app.route("/admin")
+def admin():
     if not is_admin():
         return "Non autorizzato", 403
 
-    if request.method == "POST":
+    return BASE + """
+    <h2>⚙️ Admin</h2>
 
-        data = {
-            "titolo": request.form["titolo"].upper(),
-            "autore": request.form["autore"].upper(),
-            "tipo": request.form["tipo"],
-            "genere": request.form["genere"],
-            "scaffale": request.form["scaffale"]
-        }
-
-        requests.patch(
-            SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}",
-            headers=headers,
-            json=data
-        )
-
-        return redirect("/")
-
-    libro = requests.get(
-        SUPABASE_URL + f"/rest/v1/libri?id=eq.{id}&select=*",
-        headers=headers
-    ).json()[0]
-
-    return render_template_string(FORM_MODIFICA, libro=libro)
+    <a class="btn dark" href="/admin/generi">Generi</a>
+    <a class="btn dark" href="/admin/scaffali">Scaffali</a>
+    </div>
+    """
 
 
 # =========================
-# ADMIN GENERI
+# GENERI
 # =========================
 @app.route("/admin/generi")
-def admin_generi():
-
+def generi():
     if not is_admin():
         return "Non autorizzato", 403
 
-    generi = requests.get(
-        SUPABASE_URL + "/rest/v1/generi?select=*",
-        headers=headers
-    ).json()
+    g = requests.get(SUPABASE_URL + "/rest/v1/generi?select=*", headers=headers).json()
 
-    return render_template_string(GENERI_HTML, generi=generi)
+    html = BASE + """
+    <h2>📚 Generi</h2>
+
+    <form method="POST" action="/admin/generi/add">
+        <input name="nome">
+        <button>Aggiungi</button>
+    </form>
+
+    {% for x in generi %}
+        <div class="card">
+            {{ x['nome'] }}
+            <a class="btn red" href="/admin/generi/delete/{{ x['id'] }}">X</a>
+        </div>
+    {% endfor %}
+    </div>
+    """
+
+    return render_template_string(html, generi=g)
 
 
-@app.route("/admin/generi/aggiungi", methods=["POST"])
+@app.route("/admin/generi/add", methods=["POST"])
 def add_genere():
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.post(
-        SUPABASE_URL + "/rest/v1/generi",
-        headers=headers,
-        json={"nome": request.form["nome"].lower()}
-    )
-
+    requests.post(SUPABASE_URL + "/rest/v1/generi",
+                  headers=headers,
+                  json={"nome": request.form["nome"].lower()})
     return redirect("/admin/generi")
 
 
-@app.route("/admin/generi/modifica/<int:id>", methods=["POST"])
-def edit_genere(id):
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.patch(
-        SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}",
-        headers=headers,
-        json={"nome": request.form["nome"].lower()}
-    )
-
-    return redirect("/admin/generi")
-
-
-@app.route("/admin/generi/elimina/<int:id>")
+@app.route("/admin/generi/delete/<int:id>")
 def delete_genere(id):
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.delete(
-        SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}",
-        headers=headers
-    )
-
+    requests.delete(SUPABASE_URL + f"/rest/v1/generi?id=eq.{id}", headers=headers)
     return redirect("/admin/generi")
 
 
 # =========================
-# ADMIN SCAFFALI
+# SCAFFALI
 # =========================
 @app.route("/admin/scaffali")
-def admin_scaffali():
-
+def scaffali():
     if not is_admin():
         return "Non autorizzato", 403
 
-    scaffali = requests.get(
-        SUPABASE_URL + "/rest/v1/scaffali?select=*",
-        headers=headers
-    ).json()
+    s = requests.get(SUPABASE_URL + "/rest/v1/scaffali?select=*", headers=headers).json()
 
-    return render_template_string(SCAFFALI_HTML, scaffali=scaffali)
+    html = BASE + """
+    <h2>📦 Scaffali</h2>
 
+    <form method="POST" action="/admin/scaffali/add">
+        <input name="nome">
+        <button>Aggiungi</button>
+    </form>
 
-@app.route("/admin/scaffali/aggiungi", methods=["POST"])
-def add_scaffale():
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.post(
-        SUPABASE_URL + "/rest/v1/scaffali",
-        headers=headers,
-        json={"nome": request.form["nome"].upper()}
-    )
-
-    return redirect("/admin/scaffali")
-
-
-@app.route("/admin/scaffali/modifica/<int:id>", methods=["POST"])
-def edit_scaffale(id):
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.patch(
-        SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}",
-        headers=headers,
-        json={"nome": request.form["nome"].upper()}
-    )
-
-    return redirect("/admin/scaffali")
-
-
-@app.route("/admin/scaffali/elimina/<int:id>")
-def delete_scaffale(id):
-
-    if not is_admin():
-        return "Non autorizzato", 403
-
-    requests.delete(
-        SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}",
-        headers=headers
-    )
-
-    return redirect("/admin/scaffali")
-
-BASE_STYLE = """
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-    font-family: Arial;
-    background:#f4f6f8;
-    margin:0;
-}
-
-.container {
-    max-width:900px;
-    margin:auto;
-    padding:20px;
-}
-
-.card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-input, select {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border:1px solid #ddd;
-    border-radius:8px;
-}
-
-button {
-    padding:10px 14px;
-    border:none;
-    border-radius:8px;
-    background:#2c3e50;
-    color:white;
-    cursor:pointer;
-}
-
-button:hover { opacity:0.9; }
-
-a.btn {
-    display:inline-block;
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-}
-
-.btn-blue { background:#3498db; }
-.btn-red { background:#e74c3c; }
-.btn-dark { background:#2c3e50; }
-
-table {
-    width:100%;
-    border-collapse:collapse;
-}
-
-td, th {
-    padding:10px;
-    border-bottom:1px solid #ddd;
-}
-
-</style>
-
-<div class="container">
-"""
-# =========================
-# HTML
-# =========================
-HTML = """
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-}
-
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-.header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.05);
-}
-
-.card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-input, select {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:1px solid #ddd;
-}
-
-button {
-    padding:10px 14px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#2c3e50;
-    color:white;
-}
-
-button:hover {
-    opacity:0.9;
-}
-
-a.btn {
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-    display:inline-block;
-    margin-right:5px;
-}
-
-.btn-red { background:#e74c3c; }
-.btn-blue { background:#3498db; }
-.btn-dark { background:#2c3e50; }
-
-.grid {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns:1fr 1fr;
-    }
-}
-</style>
-
-<div class="container">
-
-<div class="header">
-    <h2>📚 Biblioteca</h2>
-
-    <div>
-    {% if session.get("admin") %}
-        🔐 Admin
-        <a class="btn btn-red" href="/logout">Logout</a>
-    {% else %}
-        <a class="btn btn-dark" href="/login">Login</a>
-    {% endif %}
+    {% for x in scaffali %}
+        <div class="card">
+            {{ x['nome'] }}
+            <a class="btn red" href="/admin/scaffali/delete/{{ x['id'] }}">X</a>
+        </div>
+    {% endfor %}
     </div>
-</div>
+    """
 
-{% if session.get("admin") %}
+    return render_template_string(html, scaffali=s)
 
-<div class="card">
-<h3>⚙️ Admin Panel</h3>
-<a class="btn btn-dark" href="/admin/generi">📚 Generi</a>
-<a class="btn btn-dark" href="/admin/scaffali">📦 Scaffali</a>
-</div>
 
-<div class="card">
-<h3>➕ Aggiungi libro</h3>
+@app.route("/admin/scaffali/add", methods=["POST"])
+def add_scaffale():
+    requests.post(SUPABASE_URL + "/rest/v1/scaffali",
+                  headers=headers,
+                  json={"nome": request.form["nome"].upper()})
+    return redirect("/admin/scaffali")
 
-<form method="POST" action="/aggiungi">
 
-    <input name="titolo" placeholder="Titolo">
-    <input name="autore" placeholder="Autore">
-
-    <select name="tipo">
-        <option value="libro">Libro</option>
-        <option value="rivista">Rivista</option>
-    </select>
-
-    <select name="genere">
-        {% for g in generi %}
-        <option value="{{ g['nome'] }}">{{ g['nome'] }}</option>
-        {% endfor %}
-    </select>
-
-    <select name="scaffale">
-        {% for s in scaffali %}
-        <option value="{{ s['nome'] }}">{{ s['nome'] }}</option>
-        {% endfor %}
-    </select>
-
-    <button>➕ Aggiungi</button>
-</form>
-</div>
-
-{% endif %}
-
-<div class="card">
-<h3>🔍 Libri</h3>
-
-<div class="grid">
-
-{% if libri|length == 0 %}
-
-<div class="card">
-    <h3>📭 Nessun libro</h3>
-    <p>Inserisci il primo libro dalla sezione admin.</p>
-</div>
-
-{% else %}
-
-{% for l in libri %}
-<div class="card">
-
-    <h3>{{ l['titolo'] }}</h3>
-    <p>✍️ {{ l['autore'] }}</p>
-    <p>📚 {{ l['tipo'] }} | {{ l['genere'] }} | {{ l['scaffale'] }}</p>
-
-    {% if session.get("admin") %}
-        <a class="btn btn-blue" href="/modifica/{{ l['id'] }}">✏️</a>
-        <a class="btn btn-red" href="/elimina/{{ l['id'] }}">🗑</a>
-    {% endif %}
-
-</div>
-{% endfor %}
-
-{% endif %}
-
-</div>
-</div>
-
-</div>
-"""
-
-
-FORM_MODIFICA = """
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-}
-
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-.header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.05);
-}
-
-.card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-input, select {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:1px solid #ddd;
-}
-
-button {
-    padding:10px 14px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#2c3e50;
-    color:white;
-}
-
-button:hover {
-    opacity:0.9;
-}
-
-a.btn {
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-    display:inline-block;
-    margin-right:5px;
-}
-
-.btn-red { background:#e74c3c; }
-.btn-blue { background:#3498db; }
-.btn-dark { background:#2c3e50; }
-
-.grid {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns:1fr 1fr;
-    }
-}
-</style>
-<h2>Modifica libro</h2>
-<form method="POST">
-    <input name="titolo" value="{{ libro['titolo'] }}">
-    <input name="autore" value="{{ libro['autore'] }}">
-
-    <select name="tipo">
-        <option value="libro">Libro</option>
-        <option value="rivista">Rivista</option>
-    </select>
-
-    <input name="genere" value="{{ libro['genere'] }}">
-    <input name="scaffale" value="{{ libro['scaffale'] }}">
-
-    <button>Salva</button>
-</form>
-"""
-
-
-GENERI_HTML = """
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-}
-
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-.header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.05);
-}
-
-.card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-input, select {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:1px solid #ddd;
-}
-
-button {
-    padding:10px 14px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#2c3e50;
-    color:white;
-}
-
-button:hover {
-    opacity:0.9;
-}
-
-a.btn {
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-    display:inline-block;
-    margin-right:5px;
-}
-
-.btn-red { background:#e74c3c; }
-.btn-blue { background:#3498db; }
-.btn-dark { background:#2c3e50; }
-
-.grid {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns:1fr 1fr;
-    }
-}
-</style>
-<h2>Generi</h2>
-<a href="/">Home</a>
-
-<form method="POST" action="/admin/generi/aggiungi">
-    <input name="nome">
-    <button>Aggiungi</button>
-</form>
-
-<ul>
-{% for g in generi %}
-<li>
-{{ g['nome'] }}
-<form method="POST" action="/admin/generi/modifica/{{ g['id'] }}">
-<input name="nome" value="{{ g['nome'] }}">
-<button>✔</button>
-</form>
-<a href="/admin/generi/elimina/{{ g['id'] }}">🗑</a>
-</li>
-{% endfor %}
-</ul>
-"""
-
-
-SCAFFALI_HTML = """
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-}
-
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-}
-
-.header {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.05);
-}
-
-.card {
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.05);
-}
-
-input, select {
-    width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:1px solid #ddd;
-}
-
-button {
-    padding:10px 14px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    background:#2c3e50;
-    color:white;
-}
-
-button:hover {
-    opacity:0.9;
-}
-
-a.btn {
-    padding:8px 12px;
-    border-radius:8px;
-    text-decoration:none;
-    color:white;
-    display:inline-block;
-    margin-right:5px;
-}
-
-.btn-red { background:#e74c3c; }
-.btn-blue { background:#3498db; }
-.btn-dark { background:#2c3e50; }
-
-.grid {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-}
-
-@media (min-width: 768px) {
-    .grid {
-        grid-template-columns:1fr 1fr;
-    }
-}
-</style>
-<h2>Scaffali</h2>
-<a href="/">Home</a>
-
-<form method="POST" action="/admin/scaffali/aggiungi">
-    <input name="nome">
-    <button>Aggiungi</button>
-</form>
-
-<ul>
-{% for s in scaffali %}
-<li>
-{{ s['nome'] }}
-<form method="POST" action="/admin/scaffali/modifica/{{ s['id'] }}">
-<input name="nome" value="{{ s['nome'] }}">
-<button>✔</button>
-</form>
-<a href="/admin/scaffali/elimina/{{ s['id'] }}">🗑</a>
-</li>
-{% endfor %}
-</ul>
-"""
+@app.route("/admin/scaffali/delete/<int:id>")
+def delete_scaffale(id):
+    requests.delete(SUPABASE_URL + f"/rest/v1/scaffali?id=eq.{id}", headers=headers)
+    return redirect("/admin/scaffali")
 
 
 # =========================
