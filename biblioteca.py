@@ -148,6 +148,7 @@ def home():
             <select name="tipo">
                 <option value="libro">Libro</option>
                 <option value="rivista">Rivista</option>
+                <option value="fumetto">Fumetto</option>
             </select>
 
             <select name="genere">
@@ -180,6 +181,7 @@ def home():
             <option value="">Tipo</option>
             <option value="libro">Libro</option>
             <option value="rivista">Rivista</option>
+            <option value="fumetto">Fumetto</option>
         </select>
 
         <select name="genere">
