@@ -197,6 +197,7 @@ def home():
 
     generi = requests.get(SUPABASE_URL + "/rest/v1/generi?select=*", headers=headers).json()
     scaffali = requests.get(SUPABASE_URL + "/rest/v1/scaffali?select=*", headers=headers).json()
+    
 
     html = BASE + """
     <h2>📚 Biblioteca</h2>
@@ -350,6 +351,7 @@ def admin():
 
     <a class="btn dark" href="/admin/generi">Generi</a>
     <a class="btn dark" href="/admin/scaffali">Scaffali</a>
+    <a class="btn dark" href="/admin/statistiche">Dashboard</a>
     </div>
     """
 
@@ -392,6 +394,48 @@ def generi():
     """
 
     return render_template_string(html, generi=g)
+
+@app.route("/admin/statistiche")
+def statistiche():
+    if not is_admin():
+        return "Non autorizzato", 403
+
+    g = requests.get(SUPABASE_URL + "/rest/v1/dashboard?select=*", headers=headers).json()
+    libri = requests.get(url, headers=headers).json()
+    conteggio_genere = {}
+
+    for l in libri:
+        genere = l.get("genere") or "Sconosciuto"
+        conteggio_genere[genere] = conteggio_genere.get(genere, 0) + 1
+
+    html = BASE + """
+    <h3>📊 Libri per genere</h3>
+
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;">
+
+    {% for genere, count in conteggio_genere.items() %}
+    <div class="card">
+        📚 <b>{{ genere }}</b><br>
+        {{ count }} libri
+    </div>
+    {% endfor %}
+
+    </div>
+    <hr>
+    <a href="/" style="
+        display:inline-block;
+        padding:10px 14px;
+        background:#2c3e50;
+        color:white;
+        border-radius:8px;
+        text-decoration:none;
+        margin-top:10px;
+    ">
+    🏠 Torna alla Home
+    </a>
+    """
+
+    return render_template_string(html, generi=g, conteggio_genere=conteggio_genere)
 
 
 @app.route("/admin/generi/add", methods=["POST"])
